@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LearnOS — Study Pod</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0D0F17;--card:#1A1D27;--accent:#4F6EF7;--text:#F0F2FF;--sec:#8B8FA8;--border:#2A2D3E;--green:#34C759;--orange:#E8914F;--red:#FF453A;--purple:#A855F7}
+body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;background:none}
+input{font-family:inherit;outline:none;border:none}
+a{text-decoration:none}
+
+/* PROTO TAB BAR */
+.tab-bar{display:flex;background:#0a0b12;border-bottom:1px solid var(--border);flex-shrink:0;z-index:100}
+.tab-bar button{padding:9px 20px;color:var(--sec);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:2px solid transparent;transition:.2s}
+.tab-bar button.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-bar button:hover{color:var(--text)}
+
+/* SCREENS */
+.screen{display:none;flex:1;overflow:hidden}
+.screen.active{display:flex;height:100%}
+.screen.col.active{flex-direction:column}
+
+/* ICON SIDEBAR */
+.sidebar-icons{width:56px;background:#0a0b12;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:14px 0 12px;flex-shrink:0}
+.sidebar-icons .logo{width:30px;height:30px;margin-bottom:20px;color:var(--accent)}
+.sidebar-icons .logo svg{width:30px;height:30px}
+.si{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--sec);cursor:pointer;transition:.2s;margin-bottom:2px}
+.si:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.si.active{background:var(--accent);color:#fff}
+.si svg{width:20px;height:20px}
+.sidebar-icons .spacer{flex:1}
+.sidebar-icons .av-bottom{width:28px;height:28px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;margin-top:8px;cursor:pointer}
+
+/* MODULE SIDEBAR */
+.mod-side{width:160px;background:var(--bg);border-right:1px solid var(--border);padding:18px 10px;flex-shrink:0;overflow-y:auto}
+.mod-side h3{font-size:10px;color:var(--sec);letter-spacing:1.2px;text-transform:uppercase;font-weight:700;margin-bottom:14px;padding-left:10px}
+.mi{padding:8px 10px;border-radius:8px;font-size:13px;color:var(--sec);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:.2s;margin-bottom:1px;font-weight:400}
+.mi:hover{background:rgba(255,255,255,.04)}
+.mi.active{background:var(--accent);color:#fff;font-weight:600}
+.mi .cnt{font-size:12px;opacity:.6;min-width:14px;text-align:right}
+.mi.active .cnt{opacity:.8}
+
+/* MAIN AREA */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;height:50px;padding:0 20px;border-bottom:1px solid var(--border);flex-shrink:0;gap:12px}
+.bc{font-size:13px;color:var(--sec);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.bc .sep{font-size:11px;color:#555}
+.bc .current{color:var(--text);font-weight:600}
+.search-bar{flex:1;max-width:340px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:8px}
+.search-bar svg{width:14px;height:14px;color:var(--sec);flex-shrink:0}
+.search-bar input{background:none;color:var(--text);font-size:13px;flex:1;width:0}
+.search-bar input::placeholder{color:#555}
+.search-bar .kbd{font-size:10px;color:var(--sec);background:rgba(255,255,255,.06);padding:2px 6px;border-radius:4px;font-weight:600}
+.xp{background:linear-gradient(135deg,#4F6EF7,#6B5CF7);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tb-icons{display:flex;align-items:center;gap:4px}
+.tbi{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--sec);cursor:pointer;transition:.2s}
+.tbi:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.tbi svg{width:20px;height:20px}
+.tbi.highlight{background:var(--accent);color:#fff}
+
+/* ACTIVE SESSION PILL */
+.active-pill{background:var(--accent);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:.2s}
+.active-pill:hover{background:#3d5bd9}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.time-chip{background:rgba(255,255,255,.18);padding:1px 7px;border-radius:4px;font-size:11px;font-weight:700}
+
+/* CONTENT SPLIT */
+.content{flex:1;display:flex;overflow:hidden}
+.left-col{flex:1;overflow-y:auto;padding:20px 24px 40px}
+.right-col{width:340px;border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+
+/* VIDEO */
+.vid{background:#080a11;border-radius:10px;position:relative;aspect-ratio:16/9;overflow:hidden}
+.vid .tag{position:absolute;top:12px;left:12px;background:rgba(20,22,30,.8);padding:5px 12px;border-radius:6px;font-size:12px;color:var(--sec);backdrop-filter:blur(4px)}
+.play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;box-shadow:0 4px 20px rgba(79,110,247,.4)}
+.play:hover{transform:translate(-50%,-50%) scale(1.08)}
+.play svg{width:26px;height:26px;fill:#fff;margin-left:2px}
+.seek{position:absolute;bottom:32px;left:14px;right:14px;height:4px;background:rgba(255,255,255,.12);border-radius:2px;cursor:pointer}
+.seek .filled{width:20%;height:100%;background:#fff;border-radius:2px;position:relative}
+.seek .filled::after{content:'';position:absolute;right:-5px;top:-4px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,.4)}
+.vid-controls{position:absolute;bottom:0;left:0;right:0;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--sec)}
+.vc-left,.vc-right{display:flex;align-items:center;gap:10px}
+.vc-left svg,.vc-right svg{width:16px;height:16px;cursor:pointer}
+.speed-badge{background:rgba(255,255,255,.1);padding:2px 8px;border-radius:4px;font-size:11px;color:var(--text);font-weight:600}
+
+/* LESSON META */
+.lm{margin-top:18px}
+.lm h2{font-size:18px;font-weight:700;margin-bottom:8px}
+.lm-info{font-size:13px;color:var(--sec);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lm-info svg{width:14px;height:14px}
+.lm-info .s{color:#444}
+.lm-info .xp-text{color:var(--accent);font-weight:600}
+.lm .by{margin-top:4px;font-size:13px}
+.lm .by a{color:var(--accent);font-weight:600}
+
+/* CONTENT TABS */
+.ctabs{display:flex;gap:0;margin-top:22px;border-bottom:1px solid var(--border)}
+.ctabs button{padding:10px 18px;font-size:13px;color:var(--sec);font-weight:600;border-bottom:2px solid transparent;transition:.2s}
+.ctabs button.active{color:var(--text);border-bottom-color:var(--accent)}
+.ctabs button:hover{color:var(--text)}
+.about-section{margin-top:18px}
+.about-section h3{font-size:14px;font-weight:700;margin-bottom:10px}
+.about-section p{font-size:13px;color:var(--sec);line-height:1.75}
+.tags{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.tags span{background:transparent;border:1px solid var(--border);padding:5px 14px;border-radius:20px;font-size:12px;color:var(--sec);transition:.2s}
+
+/* LESSON LIST */
+.ll-header{padding:14px 18px;font-size:14px;font-weight:700;background:var(--card);border-bottom:1px solid var(--border)}
+.ll{flex:1;overflow-y:auto}
+.lr{display:flex;align-items:center;padding:14px 18px;gap:12px;border-bottom:1px solid rgba(42,45,62,.5);cursor:pointer;transition:.15s}
+.lr:hover{background:rgba(255,255,255,.02)}
+.lr.now{background:rgba(79,110,247,.08);border-left:3px solid var(--accent)}
+.lr .circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lr .circle svg{width:14px;height:14px}
+.lr .circle.done{border-color:var(--green);background:var(--green)}
+.lr .circle.done svg{fill:#fff}
+.lr .circle.playing{border-color:var(--accent);background:none;position:relative}
+.lr .circle.playing::after{content:'';width:16px;height:16px;border-radius:50%;border:2px solid var(--accent);border-top-color:transparent;animation:spin .8s linear infinite;position:absolute}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lr .info{flex:1;min-width:0}
+.lr .info .num{font-size:11px;color:var(--sec);font-weight:400}
+.lr .info .name{font-size:13px;font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr .info .status{font-size:11px;color:var(--accent);margin-top:1px}
+.lr .dur{font-size:12px;color:var(--sec);flex-shrink:0}
+
+/* MODULE PROGRESS */
+.mprog{padding:16px 18px;background:var(--card);border-top:1px solid var(--border);margin-top:auto}
+.mprog h4{font-size:13px;font-weight:700;margin-bottom:10px}
+.mprog .bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.mprog .bar .fill{height:100%;width:33%;background:var(--accent);border-radius:2px}
+.mprog .txt{font-size:12px;color:var(--sec)}
+
+/* AVATAR */
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.av-v{background:var(--orange)}.av-p{background:var(--purple)}.av-a{background:var(--green)}.av-k{background:var(--accent)}
+
+/* FLOATING PANEL */
+.fpanel{position:absolute;top:54px;right:14px;width:340px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.6);z-index:50;display:none;flex-direction:column;overflow:hidden;max-height:calc(100vh - 140px)}
+.fpanel.show{display:flex;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.fp-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.fp-head .title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.fp-head .count{background:var(--border);padding:2px 8px;border-radius:10px;font-size:11px;color:var(--sec);font-weight:600}
+.fp-x{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--sec);font-size:18px;transition:.2s}
+.fp-x:hover{background:var(--border);color:var(--text)}
+.fp-body{flex:1;overflow-y:auto;padding:14px 16px}
+.fp-foot{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border)}
+.fp-foot a{color:var(--accent);font-size:12px;font-weight:600;cursor:pointer}
+.create-btn{background:var(--accent);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;transition:.2s}
+.create-btn:hover{background:#3d5bd9}
+
+/* POD CARD */
+.slabel{font-size:10px;letter-spacing:1px;color:var(--sec);text-transform:uppercase;font-weight:700;margin-bottom:10px}
+.pcard{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;transition:.2s}
+.pcard:hover{border-color:rgba(79,110,247,.4)}
+.pcard .top{display:flex;align-items:start;justify-content:space-between;margin-bottom:4px}
+.pcard .top h4{font-size:14px;font-weight:700}
+.pcard .type{font-size:10px;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--sec);white-space:nowrap}
+.pcard .mod{font-size:12px;color:var(--sec);margin-bottom:10px}
+.pcard .bot{display:flex;align-items:center;justify-content:space-between}
+.pcard .bot .left{display:flex;align-items:center;gap:8px}
+.mini-avs{display:flex}
+.mini-avs .av{width:22px;height:22px;font-size:8px;margin-right:-5px;border:2px solid var(--bg)}
+.pcard .meta{font-size:11px;color:var(--sec)}
+.pcard .time{color:var(--green);font-weight:700;font-size:11px}
+.join{background:var(--accent);color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;transition:.2s;white-space:nowrap}
+.join:hover{background:#3d5bd9}
+.join.joining{background:var(--border);color:var(--sec);pointer-events:none}
+.join.joined{background:var(--green)}
+.ended{background:var(--border);color:var(--sec);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:default}
+
+/* EC WARN TOAST */
+.ectw{background:var(--bg);border:1px solid var(--orange);border-radius:10px;padding:14px;margin-top:8px}
+.ectw .ec-l{font-size:10px;letter-spacing:1px;color:var(--sec);text-transform:uppercase;font-weight:700;margin-bottom:6px}
+.ectw h4{font-size:13px;margin-bottom:3px}
+.ectw p{font-size:12px;color:var(--sec);line-height:1.5;margin-bottom:10px}
+.ectw .acts{display:flex;gap:8px}
+.ectw .acts button{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;transition:.2s}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:#3d5bd9}
+.btn-s{background:var(--border);color:var(--text)}.btn-s:hover{background:#363a50}
+.btn-d{background:var(--red);color:#fff}
+
+/* SESSION PANEL */
+.spanel{position:absolute;top:54px;right:14px;width:340px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.6);z-index:50;display:none;flex-direction:column;max-height:calc(100vh - 140px);overflow:hidden}
+.spanel.show{display:flex;animation:fadeIn .25s ease}
+.sp-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sp-head .left{display:flex;align-items:center;gap:8px}
+.sp-head h4{font-size:14px;font-weight:700}
+.sp-time{background:var(--accent);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+.sp-sect{padding:10px 16px}
+.sp-sect .label{font-size:10px;letter-spacing:1px;color:var(--sec);text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.mrow{display:flex;align-items:center;gap:10px;padding:5px 0}
+.mrow .av{width:26px;height:26px;font-size:10px}
+.mrow .nm{flex:1;font-size:13px;font-weight:600}
+.mrow .st{font-size:11px;color:var(--sec)}
+.mrow .st.dc{color:var(--red);font-style:italic}
+
+/* CHAT */
+.chat-wrap{flex:1;overflow-y:auto;padding:0 16px 8px}
+.chat-wrap .label{font-size:10px;letter-spacing:1px;color:var(--sec);text-transform:uppercase;font-weight:700;margin-bottom:10px;padding-top:8px}
+.cmsg{display:flex;gap:8px;margin-bottom:12px;align-items:flex-start}
+.cmsg .av{width:26px;height:26px;font-size:10px;flex-shrink:0}
+.cmsg .cn{font-size:11px;color:var(--sec);margin-bottom:2px}
+.cmsg .ct{font-size:13px;line-height:1.5}
+.chat-in{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--border)}
+.chat-in input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px}
+.chat-in input::placeholder{color:#555}
+.send{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s}
+.send:hover{background:#3d5bd9}
+.send svg{width:15px;height:15px;fill:#fff}
+.leave{margin:6px 16px 12px;padding:10px;border-radius:8px;background:rgba(255,69,58,.08);color:var(--red);font-size:13px;font-weight:600;text-align:center;transition:.2s;border:1px solid rgba(255,69,58,.15)}
+.leave:hover{background:rgba(255,69,58,.15)}
+
+/* EC BANNER (inside session panel) */
+.ecb{margin:10px 16px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px}
+.ecb .ec-l{font-size:10px;letter-spacing:1px;color:var(--sec);text-transform:uppercase;font-weight:700;margin-bottom:6px}
+.ecb h4{font-size:13px;margin-bottom:2px}
+.ecb p{font-size:12px;color:var(--sec);margin-bottom:8px}
+.ecb .acts{display:flex;gap:8px;align-items:center}
+.extend{background:none;border:1px solid var(--accent);color:var(--accent);padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:.2s}
+.extend:hover{background:var(--accent);color:#fff}
+
+/* SESSION END OVERLAY */
+.overlay{position:absolute;inset:0;background:rgba(13,15,23,.85);z-index:60;display:flex;align-items:center;justify-content:center}
+.ecard{background:var(--card);border-radius:16px;padding:32px;width:420px;max-width:92vw;text-align:center}
+.ecard .chk{width:52px;height:52px;border-radius:50%;background:var(--green);margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
+.ecard .chk svg{width:26px;height:26px;fill:#fff}
+.ecard h2{font-size:20px;font-weight:700;margin-bottom:5px}
+.ecard .sub{font-size:13px;color:var(--sec);margin-bottom:24px}
+.ecard .sl{font-size:12px;color:var(--sec);text-align:left;margin-bottom:10px}
+.em{display:flex;align-items:center;gap:10px;padding:7px 0;text-align:left}
+.em .av{width:32px;height:32px;font-size:11px}
+.em .nm{flex:1;font-size:14px;font-weight:600}
+.em .abtn{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;transition:.2s;background:var(--bg);border:1px solid var(--border);color:var(--text);cursor:pointer;white-space:nowrap}
+.em .abtn:hover{border-color:var(--accent);color:var(--accent)}
+.em .abtn.sent{background:rgba(52,199,89,.08);border-color:var(--green);color:var(--green);cursor:default}
+.estats{display:flex;justify-content:center;gap:16px;margin:18px 0;font-size:12px;color:var(--sec)}
+.bbtn{width:100%;padding:12px;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;transition:.2s;margin-bottom:8px}
+.bbtn:hover{background:#3d5bd9}
+.hlink{color:var(--sec);font-size:13px;cursor:pointer}
+
+/* EDGE CASES GRID */
+.ec5-head{text-align:center;padding:20px 0 4px;font-size:17px;font-weight:700}
+.ec5-sub{text-align:center;font-size:13px;color:var(--sec);margin-bottom:8px}
+.ecgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 28px 28px;max-width:860px;margin:0 auto;overflow-y:auto;flex:1;width:100%}
+.ecc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:6px}
+.ecc .eid{font-size:10px;letter-spacing:1px;color:var(--sec);text-transform:uppercase;font-weight:700}
+.ecc h3{font-size:14px;font-weight:700}
+.ecc p{font-size:12px;color:var(--sec);line-height:1.6;flex:1}
+.ecc .acts{display:flex;gap:8px;margin-top:4px}
+.ecc .acts button{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;transition:.2s}
+.npa{width:52px;height:52px;border-radius:50%;background:var(--border);margin:4px auto 6px;display:flex;align-items:center;justify-content:center}
+.npa svg{width:28px;height:28px;color:var(--sec)}
+.ecc .hint{font-size:11px;color:var(--sec);text-align:center;margin-top:4px}
+
+/* EMPTY PODS STATE */
+.empty-state{text-align:center;padding:28px 16px}
+.empty-state .art{width:60px;height:60px;border-radius:50%;background:var(--border);margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+.empty-state .art svg{width:30px;height:30px;color:var(--sec)}
+.empty-state h4{font-size:15px;font-weight:700;margin-bottom:4px}
+.empty-state p{font-size:12px;color:var(--sec);margin-bottom:14px}
+.empty-state .cta{background:var(--accent);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:600;display:inline-block}
+.empty-state .note{font-size:11px;color:var(--sec);margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="tab-bar">
+<button class="active" onclick="go(0)">Module Page</button>
+<button onclick="go(1)">Pod Panel</button>
+<button onclick="go(2)">Active Session</button>
+<button onclick="go(3)">Session End</button>
+<button onclick="go(4)">Edge Cases</button>
+</div>
+
+<!-- ===== SVG DEFS ===== -->
+<svg style="display:none">
+<defs>
+<symbol id="i-logo" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></symbol>
+<symbol id="i-mod" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path fill="currentColor" d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path fill="currentColor" d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></symbol>
+<symbol id="i-people" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></symbol>
+<symbol id="i-pod" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 13c-1.2 0-3.07.34-4.5 1-1.43-.67-3.3-1-4.5-1C5.33 13 1 14.08 1 16.25V19h22v-2.75c0-2.17-4.33-3.25-6.5-3.25zm-4 4.5H2v-1.25c0-.54 2.56-1.75 5.5-1.75s5.5 1.21 5.5 1.75v1.25zm9 0h-8v-1.25c0-.46-.2-.86-.52-1.22.88-.3 1.96-.53 3.02-.53 2.94 0 5.5 1.21 5.5 1.75v1.25zM7.5 12c1.93 0 3.5-1.57 3.5-3.5S9.43 5 7.5 5 4 6.57 4 8.5 5.57 12 7.5 12zm0-5.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 5.5c1.93 0 3.5-1.57 3.5-3.5S18.43 5 16.5 5 13 6.57 13 8.5s1.57 3.5 3.5 3.5zm0-5.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></symbol>
+<symbol id="i-vol" viewBox="0 0 24 24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></symbol>
+<symbol id="i-fs" viewBox="0 0 24 24"><path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></symbol>
+</defs>
+</svg>
+
+<!-- REUSABLE SIDEBAR -->
+<template id="tmpl-sidebar">
+<div class="sidebar-icons">
+<div class="logo"><svg><use href="#i-logo"/></svg></div>
+<div class="si"><svg><use href="#i-grid"/></svg></div>
+<div class="si active"><svg><use href="#i-mod"/></svg></div>
+<div class="si"><svg><use href="#i-folder"/></svg></div>
+<div class="si"><svg><use href="#i-chart"/></svg></div>
+<div class="si"><svg><use href="#i-trophy"/></svg></div>
+<div class="si"><svg><use href="#i-people"/></svg></div>
+<div class="spacer"></div>
+<div class="si"><svg><use href="#i-chat"/></svg></div>
+<div class="av-bottom">V</div>
+</div>
+<div class="mod-side">
+<h3>Modules</h3>
+<div class="mi active">Foundations<span class="cnt">6</span></div>
+<div class="mi">Advanced UX<span class="cnt">4</span></div>
+<div class="mi">Design Systems<span class="cnt">5</span></div>
+<div class="mi">Research Methods<span class="cnt">7</span></div>
+<div class="mi">Visual Design<span class="cnt">8</span></div>
+</div>
+</template>
+
+<!-- ===== SCREEN 0: MODULE PAGE ===== -->
+<div class="screen active" id="s0"></div>
+<!-- ===== SCREEN 1: POD PANEL ===== -->
+<div class="screen" id="s1"></div>
+<!-- ===== SCREEN 2: ACTIVE SESSION ===== -->
+<div class="screen" id="s2"></div>
+<!-- ===== SCREEN 3: SESSION END ===== -->
+<div class="screen" id="s3"></div>
+<!-- ===== SCREEN 4: EDGE CASES ===== -->
+<div class="screen col" id="s4">
+<div class="ec5-head">Edge Cases</div>
+<div class="ec5-sub">6 scenarios for Study Pod error & warning states</div>
+<div class="ecgrid">
+<div class="ecc"><div class="eid">EC 01 · Accidental Leave</div><h3>You left Debug Squad</h3><p>Your session ended unexpectedly.</p><div class="acts"><button class="btn-p">Rejoin</button><button class="btn-s">Dismiss</button></div></div>
+<div class="ecc"><div class="eid">EC 02 · User Idle</div><h3>Are you still studying?</h3><p>You have been inactive for 10 minutes.</p><div class="acts"><button class="btn-p">Yes, I'm here</button><button class="btn-d">Leave Pod</button></div></div>
+<div class="ecc"><div class="eid">EC 03 · Internet Drop</div><h3>Arjun lost connection</h3><p>Waiting to reconnect... 2:45</p><div class="acts"><button class="btn-s">OK</button></div></div>
+<div class="ecc"><div class="eid">EC 04 · Session Ending</div><h3>Session ending in 2 minutes</h3><p>The study pod timer is about to expire.</p><div class="acts"><button class="btn-p">+ Extend 10 mins</button><button class="btn-s">Let it end</button></div></div>
+<div class="ecc"><div class="eid">EC 05 · Skill Mismatch</div><h3>This pod is a few modules ahead</h3><p>Senior Hooks is on Module 7. You are on Module 2.</p><div class="acts"><button class="btn-p">Join anyway</button><button class="btn-s">Find another pod</button></div></div>
+<div class="ecc" style="text-align:center"><div class="eid" style="text-align:left">EC 06 · No Pods Available</div><div class="npa"><svg><use href="#i-people"/></svg></div><h3>No pods active right now</h3><p style="text-align:center">No one is studying this module yet</p><div class="acts" style="justify-content:center"><button class="btn-p">+ Start a Pod</button></div><div class="hint">Pods refresh every few minutes</div></div>
+</div>
+</div>
+
+<script>
+const L=[
+{n:1,t:'Introduction to Product Design',d:'20 mins',s:'done'},
+{n:2,t:'Understanding Users',d:'18 mins',s:'done'},
+{n:3,t:'Foundations of Product Design',d:'24 mins',s:'playing'},
+{n:4,t:'Wireframing Basics',d:'25 mins',s:''},
+{n:5,t:'Prototyping Methods',d:'21 mins',s:''},
+{n:6,t:'Final Project Walkthrough',d:'18 mins',s:''}
+];
+
+function lessonHTML(){
+return L.map(l=>{
+let cls=l.s==='playing'?' now':'';
+let circ=l.s==='done'?'circle done':l.s==='playing'?'circle playing':'circle';
+let icon=l.s==='done'?'<svg><use href="#i-check"/></svg>':'';
+let st=l.s==='playing'?'<div class="status">Playing now</div>':'';
+return`<div class="lr${cls}"><div class="${circ}">${icon}</div><div class="info"><div class="num">Lesson ${l.n}</div><div class="name">${l.t}</div>${st}</div><div class="dur">${l.d}</div></div>`;
+}).join('');
+}
+
+function topbar(mode){
+let right='';
+if(mode==='default'){
+right=`<div class="tbi"><svg><use href="#i-cal"/></svg></div><div class="tbi" onclick="togglePanel(this.closest('.main').querySelector('.fpanel'))"><svg><use href="#i-pod"/></svg></div><div class="tbi"><svg><use href="#i-bell"/></svg></div>`;
+}else if(mode==='pod-open'){
+right=`<div class="tbi"><svg><use href="#i-cal"/></svg></div><div class="tbi highlight" onclick="togglePanel(this.closest('.main').querySelector('.fpanel'))"><svg><use href="#i-pod"/></svg></div><div class="tbi"><svg><use href="#i-bell"/></svg></div>`;
+}else if(mode==='active'){
+right=`<div class="tbi"><svg><use href="#i-cal"/></svg></div><div class="active-pill" onclick="togglePanel(this.closest('.main').querySelector('.spanel'))"><span class="pulse-dot"></span>Debug Squad<span class="time-chip" id="sessionTimer">12:34</span></div><div class="tbi"><svg><use href="#i-bell"/></svg></div>`;
+}else{
+right=`<div class="tbi"><svg><use href="#i-cal"/></svg></div><div class="tbi"><svg><use href="#i-pod"/></svg></div><div class="tbi"><svg><use href="#i-bell"/></svg></div>`;
+}
+return`<div class="topbar"><div class="bc">Modules<span class="sep">›</span>Foundations<span class="sep">›</span><span class="current">Lesson 3</span></div><div class="search-bar"><svg><use href="#i-search"/></svg><input placeholder="Search lessons, topics..."><span class="kbd">⌘K</span></div><div class="xp">⚡ 905</div><div class="tb-icons">${right}</div></div>`;
+}
+
+function videoHTML(){
+return`<div class="vid"><div class="tag">Session 3 · Foundations of Product Design</div><div class="play"><svg><use href="#i-play"/></svg></div><div class="seek"><div class="filled"></div></div><div class="vid-controls"><div class="vc-left"><svg><use href="#i-play"/></svg><span>04:32 / 22:15</span></div><div class="vc-right"><svg><use href="#i-vol"/></svg><span class="speed-badge">1x</span><svg><use href="#i-fs"/></svg></div></div></div>`;
+}
+
+function metaHTML(){
+return`<div class="lm"><h2>Lesson 3 — Foundations of Product Design</h2><div class="lm-info"><svg><use href="#i-cal"/></svg>Mar 28, 2026<span class="s">|</span>Live Session<span class="s">|</span><span class="xp-text">+120 XP</span></div><div class="by"><a href="#">By Arjun Sharma</a></div></div><div class="ctabs"><button class="active">Overview</button><button>Resources</button><button>✨ AI Summary</button></div><div class="about-section"><h3>About this lesson</h3><p>In this session, we dive deep into the foundational principles of product design, exploring how user research informs every design decision. You'll learn how to translate research insights into wireframes and early prototypes that solve real user problems while aligning with business objectives and technical constraints.</p><div class="tags"><span>User Research</span><span>Prototyping</span><span>Wireframes</span></div></div>`;
+}
+
+function rightCol(){
+return`<div class="right-col"><div class="ll-header">Foundations · 6 lessons</div><div class="ll">${lessonHTML()}</div><div class="mprog"><h4>Module Progress</h4><div class="bar"><div class="fill"></div></div><div class="txt">2 of 6 lessons completed</div></div></div>`;
+}
+
+function sidebarHTML(){
+return document.getElementById('tmpl-sidebar').innerHTML;
+}
+
+// SCREEN 0
+document.getElementById('s0').innerHTML=sidebarHTML()+`<div class="main">${topbar('default')}<div class="content"><div class="left-col">${videoHTML()}${metaHTML()}</div>${rightCol()}</div></div>`;
+
+// SCREEN 1 — Pod panel
+document.getElementById('s1').innerHTML=sidebarHTML()+`<div class="main">${topbar('pod-open')}<div class="content"><div class="left-col">${videoHTML()}${metaHTML()}</div>${rightCol()}</div>
+<div class="fpanel show" id="podPanel1">
+<div class="fp-head"><div class="title"><svg style="width:18px;height:18px"><use href="#i-pod"/></svg>Study Pod<span class="count">2 open</span></div><button class="fp-x" onclick="togglePanel(this.closest('.fpanel'))">✕</button></div>
+<div class="fp-body">
+<div class="slabel">Active Pods Nearby</div>
+<div class="pcard"><div class="top"><h4>Hooks Crew</h4><span class="type">💻 Coding Practice</span></div><div class="mod">Module 2 — React Hooks</div><div class="bot"><div class="left"><div class="mini-avs"><div class="av" style="background:#e74c3c;width:22px;height:22px;font-size:8px;border:2px solid var(--bg)">S</div><div class="av" style="background:#e67e22;width:22px;height:22px;font-size:8px;margin-left:-5px;border:2px solid var(--bg)">R</div><div class="av" style="background:var(--accent);width:22px;height:22px;font-size:8px;margin-left:-5px;border:2px solid var(--bg)">M</div></div><span class="meta">3/5</span></div><button class="join" onclick="joinPod(this)">Join →</button></div></div>
+<div class="pcard"><div class="top"><h4>Senior Hooks</h4><span class="type">👁 Watch & Learn</span></div><div class="mod">Module 7 — Advanced Patterns</div><div class="bot"><div class="left"><div class="mini-avs"><div class="av" style="background:#1abc9c;width:22px;height:22px;font-size:8px;border:2px solid var(--bg)">T</div><div class="av" style="background:#9b59b6;width:22px;height:22px;font-size:8px;margin-left:-5px;border:2px solid var(--bg)">D</div><div class="av" style="background:#e67e22;width:22px;height:22px;font-size:8px;margin-left:-5px;border:2px solid var(--bg)">J</div><div class="av" style="background:#e74c3c;width:22px;height:22px;font-size:8px;margin-left:-5px;border:2px solid var(--bg)">B</div></div><span class="meta">4/5</span></div><button class="join" onclick="joinPod(this)">Join →</button></div></div>
+</div>
+<div class="fp-foot"><a>View all pods ↓</a><button class="create-btn">+ Create Pod</button></div>
+</div></div>`;
+
+// SCREEN 2 — Active Session
+document.getElementById('s2').innerHTML=sidebarHTML()+`<div class="main">${topbar('active')}<div class="content"><div class="left-col">${videoHTML()}${metaHTML()}</div>${rightCol()}</div>
+<div class="spanel show" id="sessionPanel">
+<div class="sp-head"><div class="left"><span class="pulse-dot"></span><h4>Debug Squad</h4><span class="sp-time" id="panelTimer">12:34</span></div><button class="fp-x" onclick="togglePanel(this.closest('.spanel'))">✕</button></div>
+<div class="sp-sect"><div class="label">Members · 4</div>
+<div class="mrow"><div class="av av-v">V</div><div class="nm">Vipin (You)</div><div class="st">studying</div></div>
+<div class="mrow"><div class="av av-p">P</div><div class="nm">Priya</div><div class="st">studying</div></div>
+<div class="mrow"><div class="av av-a">A</div><div class="nm">Arjun</div><div class="st">studying</div></div>
+<div class="mrow"><div class="av av-k">K</div><div class="nm">Keerthi</div><div class="st">studying</div></div>
+</div>
+<div class="chat-wrap" id="chatWrap"><div class="label">Pod Chat</div>
+<div class="cmsg"><div class="av av-p">P</div><div><div class="cn">Priya</div><div class="ct">Just finished the useEffect section 🎉</div></div></div>
+<div class="cmsg"><div class="av av-a">A</div><div><div class="cn">Arjun</div><div class="ct">Same! The cleanup function finally clicked for me</div></div></div>
+<div class="cmsg"><div class="av av-k">K</div><div><div class="cn">Keerthi</div><div class="ct">Can someone explain the dependency array again?</div></div></div>
+</div>
+<div class="chat-in"><input id="chatInput" placeholder="Message the pod..." onkeydown="if(event.key==='Enter')sendChat()"><button class="send" onclick="sendChat()"><svg><use href="#i-send"/></svg></button></div>
+<button class="leave" onclick="go(3)">Leave Pod</button>
+</div></div>`;
+
+// SCREEN 3 — Session End
+document.getElementById('s3').innerHTML=sidebarHTML()+`<div class="main" style="filter:brightness(.35)">${topbar('none')}<div class="content"><div class="left-col">${videoHTML()}</div>${rightCol()}</div></div><div class="overlay"><div class="ecard"><div class="chk"><svg><use href="#i-check"/></svg></div><h2>Great session, Vipin!</h2><div class="sub">28 minutes · Watch & Learn · Debug Squad</div><div class="sl">You studied with:</div>
+<div class="em"><div class="av av-v">V</div><div class="nm">Vipin (You)</div></div>
+<div class="em"><div class="av av-p">P</div><div class="nm">Priya</div><button class="abtn sent">Appreciation sent ✓</button></div>
+<div class="em"><div class="av av-a">A</div><div class="nm">Arjun</div><button class="abtn" onclick="appreciate(this)">🤝 It was great studying with you</button></div>
+<div class="em"><div class="av av-k">K</div><div class="nm">Keerthi</div><button class="abtn" onclick="appreciate(this)">🤝 It was great studying with you</button></div>
+<div class="estats"><span>28 mins studied</span><span>·</span><span>3 pod members</span><span>·</span><span>Module 2</span></div>
+<button class="bbtn" onclick="go(0)">Back to Module</button><button class="hlink">View session history</button>
+</div></div>`;
+
+// FUNCTIONS
+const screens=document.querySelectorAll('.screen');
+const tabs=document.querySelectorAll('.tab-bar button');
+function go(i){screens.forEach((s,j)=>{s.classList.toggle('active',j===i)});tabs.forEach((t,j)=>{t.classList.toggle('active',j===i)})}
+
+function togglePanel(el){if(el)el.classList.toggle('show')}
+
+function joinPod(b){b.textContent='Joining...';b.classList.add('joining');setTimeout(()=>{b.textContent='Joined ✓';b.classList.remove('joining');b.classList.add('joined')},1200)}
+
+function appreciate(b){b.classList.add('sent');b.textContent='Appreciation sent ✓';b.onclick=null}
+
+function sendChat(){
+const inp=document.getElementById('chatInput');const m=inp.value.trim();if(!m)return;
+const w=document.getElementById('chatWrap');const d=document.createElement('div');d.className='cmsg';
+d.innerHTML=`<div class="av av-v">V</div><div><div class="cn">Vipin (You)</div><div class="ct">${m.replace(/</g,'&lt;')}</div></div>`;
+w.appendChild(d);inp.value='';w.scrollTop=w.scrollHeight;
+}
+
+let t=754;
+setInterval(()=>{t++;const mm=String(Math.floor(t/60)).padStart(2,'0'),ss=String(t%60).padStart(2,'0'),v=mm+':'+ss;const a=document.getElementById('sessionTimer');if(a)a.textContent=v;const b=document.getElementById('panelTimer');if(b)b.textContent=v},1000);
+</script>
+</body>
+</html>
